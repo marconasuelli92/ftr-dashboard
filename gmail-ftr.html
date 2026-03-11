@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gmail FTR Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#0f1117;color:#e2e8f0;min-height:100vh}
+.header{background:linear-gradient(135deg,#1a1f2e,#252d3d);padding:20px 32px;border-bottom:1px solid #2d3748;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.header-left{display:flex;align-items:center;gap:14px}
+.header h1{font-size:1.3rem;font-weight:700;color:#fff}
+.header span{font-size:.78rem;color:#718096;background:#2d3748;padding:3px 10px;border-radius:20px}
+.container{max-width:1200px;margin:0 auto;padding:28px 20px}
+.card{background:#1a1f2e;border:1px solid #2d3748;border-radius:14px;padding:24px;margin-bottom:22px}
+.card h2{font-size:.82rem;color:#718096;text-transform:uppercase;letter-spacing:.06em;margin-bottom:18px}
+.form-row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
+.form-group{display:flex;flex-direction:column;gap:7px;flex:1;min-width:180px}
+label{font-size:.78rem;color:#718096;font-weight:600}
+input{background:#0f1117;border:1px solid #2d3748;border-radius:8px;padding:9px 13px;color:#e2e8f0;font-size:.88rem;outline:none;transition:border .2s}
+input:focus{border-color:#4f6ef7}
+.btn{padding:10px 22px;border-radius:8px;border:none;cursor:pointer;font-size:.88rem;font-weight:600;transition:all .2s;white-space:nowrap}
+.btn-primary{background:linear-gradient(135deg,#4f6ef7,#7c3aed);color:#fff}
+.btn-primary:hover{opacity:.88;transform:translateY(-1px)}
+.btn-sm{padding:5px 13px;font-size:.76rem}
+.btn-ghost{background:#2d3748;color:#a0aec0;border:1px solid #4a5568}
+.btn-ghost:hover{background:#3d4a5c}
+.tip{background:#1a2535;border:1px solid #2a4a6a;border-radius:8px;padding:12px 16px;font-size:.8rem;color:#63b3ed;line-height:1.6;margin-bottom:18px}
+.tip a{color:#90cdf4}
+.tip strong{color:#90cdf4}
+.tip code{background:#0f1117;padding:1px 5px;border-radius:4px;font-size:.78rem}
+.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.metric-card{background:#1a1f2e;border:1px solid #2d3748;border-radius:12px;padding:18px 20px}
+.metric-label{font-size:.72rem;color:#718096;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.metric-value{font-size:1.7rem;font-weight:700}
+.metric-sub{font-size:.75rem;color:#4f6ef7;margin-top:3px}
+.accounts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:22px}
+.account-card{background:#1a1f2e;border:1px solid #2d3748;border-radius:12px;padding:18px;position:relative}
+.acc-email{font-weight:600;font-size:.9rem;color:#e2e8f0;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.acc-dot{width:8px;height:8px;border-radius:50%;background:#68d391;flex-shrink:0}
+.acc-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.acc-stat{background:#0f1117;border-radius:8px;padding:10px}
+.acc-stat-label{font-size:.68rem;color:#718096;margin-bottom:3px}
+.acc-stat-value{font-size:1.05rem;font-weight:700}
+.acc-remove{position:absolute;top:12px;right:12px;background:none;border:none;color:#4a5568;cursor:pointer;font-size:1rem;line-height:1;padding:2px 6px;border-radius:4px;transition:color .15s}
+.acc-remove:hover{color:#fc8181}
+.table-card{background:#1a1f2e;border:1px solid #2d3748;border-radius:14px;overflow:hidden}
+.table-header{padding:18px 22px;border-bottom:1px solid #2d3748;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.filter-bar{display:flex;gap:7px;flex-wrap:wrap}
+.filter-btn{padding:4px 13px;border-radius:20px;border:1px solid #2d3748;background:transparent;color:#a0aec0;font-size:.76rem;cursor:pointer;transition:all .15s}
+.filter-btn.active{background:#4f6ef7;border-color:#4f6ef7;color:#fff}
+table{width:100%;border-collapse:collapse}
+th{padding:11px 14px;text-align:left;font-size:.7rem;color:#718096;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #2d3748;background:#161b27}
+td{padding:12px 14px;font-size:.83rem;border-bottom:1px solid #1e2535;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#1e2535}
+.pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.74rem;font-weight:700}
+.pill-good{background:#1a3a2a;color:#68d391}
+.pill-warn{background:#3a2a1a;color:#f6ad55}
+.pill-bad{background:#3a1a1a;color:#fc8181}
+.pill-none{background:#252d3d;color:#718096}
+.cell-trunc{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cell-muted{color:#718096;font-size:.78rem}
+.progress-wrap{background:#1a1f2e;border-radius:12px;padding:22px;margin-bottom:18px;border:1px solid #2d3748}
+.progress-bar-outer{background:#0f1117;border-radius:8px;height:7px;overflow:hidden;margin-top:10px}
+.progress-bar-inner{height:100%;background:linear-gradient(90deg,#4f6ef7,#7c3aed);border-radius:8px;transition:width .3s}
+.empty-state{text-align:center;padding:50px 20px;color:#4a5568;font-size:.88rem}
+.section-title{font-size:.95rem;font-weight:700;color:#e2e8f0;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.filter-tag{display:inline-flex;align-items:center;gap:5px;background:#1e2d3d;border:1px solid #2a4a6a;color:#63b3ed;border-radius:20px;padding:3px 11px;font-size:.74rem}
+.filter-tag-x{cursor:pointer;color:#4a5568;font-size:.85em;margin-left:2px}
+.filter-tag-x:hover{color:#fc8181}
+@media(max-width:700px){.metrics-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#4f6ef7" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <h1>First Time Response Dashboard</h1>
+    <span id="accountCount">0 account</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Setup -->
+  <div class="card" id="setupCard">
+    <h2>⚙️ Aggiungi account Gmail</h2>
+    <div class="tip" id="setupTip">
+      <strong>Prima configurazione:</strong> vai su <a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a> → crea progetto → abilita <strong>Gmail API</strong> → crea credenziali OAuth 2.0 (Web App) → aggiungi <code>https://claude.ai</code> come Authorized JS Origin → copia il Client ID qui sotto.<br>
+      <strong>Per i dipendenti:</strong> ogni persona apre questa pagina, inserisce il Client ID e clicca "Connetti". I dati si accumulano.
+    </div>
+
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label>Google OAuth Client ID</label>
+        <input type="text" id="clientId" placeholder="xxxxxxxx.apps.googleusercontent.com" />
+      </div>
+      <div class="form-group">
+        <label>Dominio interno</label>
+        <input type="text" id="internalDomain" placeholder="azienda.com" />
+      </div>
+      <div class="form-group" style="max-width:120px">
+        <label>Max thread</label>
+        <input type="number" id="maxThreads" value="100" min="10" max="500" />
+      </div>
+      <div class="form-group" style="flex:0">
+        <label>&nbsp;</label>
+        <button class="btn btn-primary" onclick="startAuth()">🔐 Connetti Gmail</button>
+      </div>
+    </div>
+
+    <!-- Filter tags -->
+    <div style="margin-top:18px">
+      <label style="font-size:.78rem;color:#718096;font-weight:600;display:block;margin-bottom:9px">🚫 Escludi automaticamente</label>
+      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px" id="filterTags"></div>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="customSkipInput" placeholder="Aggiungi mittente o parola nell'oggetto da escludere" style="flex:1;font-size:.8rem;padding:7px 11px" />
+        <button class="btn btn-ghost btn-sm" onclick="addCustomSkip()">+ Aggiungi</button>
+      </div>
+    </div>
+
+    <div style="margin-top:12px" id="authStatus"></div>
+  </div>
+
+  <!-- Progress -->
+  <div id="progressSection" style="display:none">
+    <div class="progress-wrap">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <strong id="progressTitle">Analisi in corso...</strong>
+        <span id="progressPct" style="color:#4f6ef7;font-weight:700">0%</span>
+      </div>
+      <div class="progress-bar-outer"><div class="progress-bar-inner" id="progressBar" style="width:0%"></div></div>
+      <div style="font-size:.8rem;color:#718096;margin-top:8px" id="progressText">Inizializzazione...</div>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard" style="display:none">
+    <div class="section-title">📊 Riepilogo globale</div>
+    <div class="metrics-grid" id="metricsGrid"></div>
+
+    <div class="section-title" style="justify-content:space-between">
+      <span>👥 Performance per account</span>
+      <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ Esporta CSV</button>
+    </div>
+    <div class="accounts-grid" id="accountsGrid"></div>
+
+    <div class="table-card">
+      <div class="table-header">
+        <strong style="font-size:.95rem">📧 Tutti i thread</strong>
+        <div class="filter-bar">
+          <button class="filter-btn active" onclick="filterTable('all',this)">Tutti</button>
+          <button class="filter-btn" onclick="filterTable('good',this)">✅ &lt; 2h</button>
+          <button class="filter-btn" onclick="filterTable('warn',this)">⚠️ 2–8h</button>
+          <button class="filter-btn" onclick="filterTable('bad',this)">🔴 &gt; 8h</button>
+          <button class="filter-btn" onclick="filterTable('none',this)">⏳ Senza risposta</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Oggetto</th><th>Mittente</th><th>Ricevuta</th><th>Prima risposta</th><th>FTR</th><th>Risposto da</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
+<script>
+// ─── State ─────────────────────────────────────────────────
+var accessToken = null;
+var internalDomain = '';
+var allData = {}; // { email: { email, analyzedAt, rows[] } }
+
+// ─── Auto-filter rules ─────────────────────────────────────
+var SKIP_SENDERS = [
+  'calendar-notification@google.com',
+  'noreply@calendar.google.com',
+  'invites-noreply@google.com',
+  'no-reply@calendar.google.com',
+  'noreply@microsoft.com',
+  'no-reply@microsoft.com',
+  'noreply@zoom.us',
+  'no-reply@zoom.us',
+  'noreply@webex.com',
+  'no-reply@webex.com',
+  'notifications@teams.microsoft.com'
+];
+
+var SKIP_SENDER_RX = [
+  /noreply/i, /no-reply/i, /donotreply/i, /do-not-reply/i,
+  /mailer-daemon/i, /postmaster/i, /notifications?@/i,
+  /alerts?@/i, /automat/i, /newsletter/i
+];
+
+var SKIP_SUBJECT_RX = [
+  /\binvit[oa]\b/i, /\binvitation\b/i,
+  /accepted:/i, /declined:/i, /tentative:/i,
+  /updated invitation/i, /canceled event/i,
+  /cancellat[oa]/i, /nuov[oa] evento/i,
+  /aggiornamento evento/i, /promemoria:/i,
+  /reminder:/i, /automatic reply/i,
+  /risposta automatica/i, /out of office/i,
+  /fuori ufficio/i, /\[spam\]/i
+];
+
+var DEFAULT_TAG_LABELS = [
+  'Google Calendar','Microsoft Calendar','Zoom','Webex',
+  'Teams','Inviti meeting','No-reply','Newsletter'
+];
+var customSkips = []; // { label, rx }
+
+function isAutomated(from, subject, hdrs) {
+  var fl = from.toLowerCase();
+  if (SKIP_SENDERS.indexOf(fl) >= 0) return true;
+  for (var i = 0; i < SKIP_SENDER_RX.length; i++) {
+    if (SKIP_SENDER_RX[i].test(fl)) return true;
+  }
+  for (var j = 0; j < SKIP_SUBJECT_RX.length; j++) {
+    if (SKIP_SUBJECT_RX[j].test(subject)) return true;
+  }
+  for (var k = 0; k < customSkips.length; k++) {
+    if (customSkips[k].rx.test(fl) || customSkips[k].rx.test(subject)) return true;
+  }
+  var autoSub = hdrs['Auto-Submitted'] || '';
+  if (autoSub && autoSub !== 'no') return true;
+  var prec = (hdrs['Precedence'] || '').toLowerCase();
+  if (prec === 'bulk' || prec === 'list' || prec === 'junk') return true;
+  if (hdrs['List-Unsubscribe']) return true;
+  return false;
+}
+
+// ─── Filter tag UI ─────────────────────────────────────────
+function renderFilterTags() {
+  var wrap = document.getElementById('filterTags');
+  var html = '';
+  for (var i = 0; i < DEFAULT_TAG_LABELS.length; i++) {
+    html += '<span class="filter-tag">' + DEFAULT_TAG_LABELS[i] + '</span>';
+  }
+  for (var j = 0; j < customSkips.length; j++) {
+    var idx = j;
+    html += '<span class="filter-tag">' + customSkips[idx].label +
+      '<span class="filter-tag-x" onclick="removeCustomSkip(' + idx + ')">✕</span></span>';
+  }
+  wrap.innerHTML = html;
+}
+
+function addCustomSkip() {
+  var val = document.getElementById('customSkipInput').value.trim();
+  if (!val) return;
+  var escaped = val.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  customSkips.push({ label: val, rx: new RegExp(escaped, 'i') });
+  document.getElementById('customSkipInput').value = '';
+  renderFilterTags();
+}
+
+function removeCustomSkip(i) {
+  customSkips.splice(i, 1);
+  renderFilterTags();
+}
+
+// ─── Helpers ───────────────────────────────────────────────
+function fmtMs(ms) {
+  if (ms < 0) return '—';
+  var m = Math.round(ms / 60000);
+  if (m < 60) return m + 'm';
+  var h = Math.floor(m / 60), rm = m % 60;
+  if (h < 24) return h + 'h' + (rm ? ' ' + rm + 'm' : '');
+  return Math.floor(h / 24) + 'g ' + (h % 24 ? (h % 24) + 'h' : '');
+}
+
+function ftrCls(ms) {
+  if (ms < 0) return 'none';
+  var h = ms / 3600000;
+  return h <= 2 ? 'good' : h <= 8 ? 'warn' : 'bad';
+}
+
+function extractEmail(s) {
+  var m = s.match(/<(.+?)>/);
+  return m ? m[1] : s;
+}
+
+function isInternal(email) {
+  if (!internalDomain) return false;
+  return email.toLowerCase().indexOf(internalDomain) >= 0;
+}
+
+function setProgress(pct, text, title) {
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressText').textContent = text;
+  if (title) document.getElementById('progressTitle').textContent = title;
+}
+
+function showStatus(msg, color) {
+  document.getElementById('authStatus').innerHTML =
+    '<span style="font-size:.8rem;color:' + (color || '#68d391') + '">' + msg + '</span>';
+}
+
+// ─── Gmail API ─────────────────────────────────────────────
+function gmailGet(url) {
+  return fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } })
+    .then(function(r) {
+      if (!r.ok) throw new Error('Gmail API ' + r.status);
+      return r.json();
+    });
+}
+
+// ─── OAuth ─────────────────────────────────────────────────
+function startAuth() {
+  var cid = document.getElementById('clientId').value.trim();
+  internalDomain = document.getElementById('internalDomain').value.trim().toLowerCase();
+  if (!cid) { showStatus('Inserisci il Client ID', '#fc8181'); return; }
+  sessionStorage.setItem('ftr_cid', cid);
+  sessionStorage.setItem('ftr_domain', internalDomain);
+  sessionStorage.setItem('ftr_max', document.getElementById('maxThreads').value);
+  var scope = encodeURIComponent('https://www.googleapis.com/auth/gmail.readonly');
+  var redirect = encodeURIComponent(location.href.split('?')[0].split('#')[0]);
+  location.href = 'https://accounts.google.com/o/oauth2/v2/auth?client_id=' + cid +
+    '&redirect_uri=' + redirect + '&response_type=token&scope=' + scope + '&prompt=select_account';
+}
+
+// ─── Analysis ──────────────────────────────────────────────
+function analyze() {
+  document.getElementById('progressSection').style.display = 'block';
+  var max = parseInt(sessionStorage.getItem('ftr_max') || '100');
+
+  gmailGet('https://gmail.googleapis.com/gmail/v1/users/me/profile')
+    .then(function(profile) {
+      var myEmail = profile.emailAddress;
+      setProgress(5, 'Recupero thread...', 'Analisi: ' + myEmail);
+      return gmailGet('https://gmail.googleapis.com/gmail/v1/users/me/threads?maxResults=' + max + '&q=in:inbox')
+        .then(function(listData) {
+          var threads = listData.threads || [];
+          if (!threads.length) { setProgress(100, 'Nessun thread trovato.'); return; }
+          var rows = [];
+          var i = 0;
+
+          function next() {
+            if (i >= threads.length) {
+              allData[myEmail] = { email: myEmail, analyzedAt: new Date().toISOString(), rows: rows };
+              return saveData().then(function() {
+                setProgress(100, 'Completato!');
+                setTimeout(function() {
+                  document.getElementById('progressSection').style.display = 'none';
+                  renderDashboard();
+                }, 500);
+              });
+            }
+            var pct = Math.round(10 + (i / threads.length) * 87);
+            setProgress(pct, 'Thread ' + (i + 1) + '/' + threads.length + ' — ' + myEmail);
+            var tid = threads[i].id;
+            i++;
+            return gmailGet('https://gmail.googleapis.com/gmail/v1/users/me/threads/' + tid +
+              '?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Auto-Submitted&metadataHeaders=Precedence&metadataHeaders=List-Unsubscribe')
+              .then(function(td) {
+                var msgs = td.messages || [];
+                if (msgs.length) {
+                  var firstIn = null;
+                  for (var m = 0; m < msgs.length; m++) {
+                    var hdrs = {};
+                    var headers = msgs[m].payload.headers || [];
+                    for (var h = 0; h < headers.length; h++) hdrs[headers[h].name] = headers[h].value;
+                    var from = extractEmail(hdrs['From'] || '');
+                    var subject = hdrs['Subject'] || '';
+                    if (!isInternal(from) && from !== myEmail && !isAutomated(from, subject, hdrs)) {
+                      firstIn = { msg: msgs[m], hdrs: hdrs, from: from };
+                      break;
+                    }
+                  }
+                  if (firstIn) {
+                    var inDate = new Date(parseInt(firstIn.msg.internalDate));
+                    var subject = firstIn.hdrs['Subject'] || '(nessun oggetto)';
+                    var firstReply = null;
+                    for (var r = 0; r < msgs.length; r++) {
+                      var rDate = new Date(parseInt(msgs[r].internalDate));
+                      if (rDate <= inDate) continue;
+                      var rHdrs = {};
+                      var rHeaders = msgs[r].payload.headers || [];
+                      for (var rh = 0; rh < rHeaders.length; rh++) rHdrs[rHeaders[rh].name] = rHeaders[rh].value;
+                      var rFrom = extractEmail(rHdrs['From'] || '');
+                      if (isInternal(rFrom) || rFrom === myEmail) {
+                        firstReply = { from: rFrom, date: rDate };
+                        break;
+                      }
+                    }
+                    var ftrMs = firstReply ? (firstReply.date - inDate) : -1;
+                    rows.push({
+                      subject: subject,
+                      from: firstIn.from,
+                      inDate: inDate,
+                      replyDate: firstReply ? firstReply.date : null,
+                      ftrMs: ftrMs,
+                      repliedBy: firstReply ? firstReply.from : null,
+                      cls: ftrCls(ftrMs)
+                    });
+                  }
+                }
+              })
+              .catch(function() {})
+              .then(next);
+          }
+          return next();
+        });
+    })
+    .catch(function(e) {
+      setProgress(0, 'Errore: ' + e.message);
+    });
+}
+
+// ─── Storage ───────────────────────────────────────────────
+function saveData() {
+  try { return window.storage.set('ftr_data', JSON.stringify(allData)) || Promise.resolve(); }
+  catch(e) { return Promise.resolve(); }
+}
+
+function loadData() {
+  try {
+    return window.storage.get('ftr_data').then(function(r) {
+      if (r && r.value) allData = JSON.parse(r.value);
+    }).catch(function() { allData = {}; });
+  } catch(e) { allData = {}; return Promise.resolve(); }
+}
+
+function removeAccount(email) {
+  delete allData[email];
+  saveData().then(renderDashboard);
+}
+
+// ─── Render ────────────────────────────────────────────────
+function getAllRows() {
+  var rows = [];
+  var accounts = Object.values(allData);
+  for (var i = 0; i < accounts.length; i++) {
+    rows = rows.concat(accounts[i].rows);
+  }
+  return rows;
+}
+
+function renderDashboard() {
+  var accounts = Object.values(allData);
+  document.getElementById('accountCount').textContent = accounts.length + ' account';
+  if (!accounts.length) { document.getElementById('dashboard').style.display = 'none'; return; }
+  document.getElementById('dashboard').style.display = 'block';
+
+  var all = getAllRows();
+  var replied = all.filter(function(r) { return r.ftrMs >= 0; });
+  var avg = replied.length ? replied.reduce(function(s, r) { return s + r.ftrMs; }, 0) / replied.length : 0;
+  var sorted = replied.slice().sort(function(a, b) { return a.ftrMs - b.ftrMs; });
+  var med = sorted.length ? sorted[Math.floor(sorted.length / 2)].ftrMs : 0;
+  var pctGood = all.length ? Math.round(all.filter(function(r) { return r.cls === 'good'; }).length / all.length * 100) : 0;
+
+  document.getElementById('metricsGrid').innerHTML =
+    '<div class="metric-card"><div class="metric-label">Thread totali</div><div class="metric-value">' + all.length + '</div><div class="metric-sub">' + replied.length + ' con risposta</div></div>' +
+    '<div class="metric-card"><div class="metric-label">FTR Medio</div><div class="metric-value" style="color:#63b3ed">' + fmtMs(avg) + '</div><div class="metric-sub">media globale</div></div>' +
+    '<div class="metric-card"><div class="metric-label">FTR Mediano</div><div class="metric-value" style="color:#b794f4">' + fmtMs(med) + '</div><div class="metric-sub">50° percentile</div></div>' +
+    '<div class="metric-card"><div class="metric-label">Risposto &lt; 2h</div><div class="metric-value" style="color:#68d391">' + pctGood + '%</div><div class="metric-sub">' + all.filter(function(r) { return r.cls === 'good'; }).length + ' thread</div></div>';
+
+  var accHtml = '';
+  for (var i = 0; i < accounts.length; i++) {
+    var acc = accounts[i];
+    var rep = acc.rows.filter(function(r) { return r.ftrMs >= 0; });
+    var accAvg = rep.length ? rep.reduce(function(s, r) { return s + r.ftrMs; }, 0) / rep.length : -1;
+    var accGood = acc.rows.length ? Math.round(acc.rows.filter(function(r) { return r.cls === 'good'; }).length / acc.rows.length * 100) : 0;
+    var accNone = acc.rows.filter(function(r) { return r.cls === 'none'; }).length;
+    accHtml += '<div class="account-card">' +
+      '<button class="acc-remove" onclick="removeAccount(\'' + acc.email + '\')">✕</button>' +
+      '<div class="acc-email"><div class="acc-dot"></div>' + acc.email + '</div>' +
+      '<div class="acc-stats">' +
+      '<div class="acc-stat"><div class="acc-stat-label">Thread</div><div class="acc-stat-value">' + acc.rows.length + '</div></div>' +
+      '<div class="acc-stat"><div class="acc-stat-label">FTR medio</div><div class="acc-stat-value" style="color:#63b3ed">' + fmtMs(accAvg) + '</div></div>' +
+      '<div class="acc-stat"><div class="acc-stat-label">&lt; 2h</div><div class="acc-stat-value" style="color:#68d391">' + accGood + '%</div></div>' +
+      '<div class="acc-stat"><div class="acc-stat-label">Senza risposta</div><div class="acc-stat-value" style="color:#fc8181">' + accNone + '</div></div>' +
+      '</div>' +
+      '<div style="font-size:.68rem;color:#4a5568;margin-top:10px">Aggiornato: ' + dayjs(acc.analyzedAt).format('DD/MM/YY HH:mm') + '</div>' +
+      '</div>';
+  }
+  document.getElementById('accountsGrid').innerHTML = accHtml;
+  renderTable(getAllRows());
+}
+
+function renderTable(rows) {
+  rows = rows.slice().sort(function(a, b) { return b.inDate - a.inDate; });
+  var tbody = document.getElementById('tableBody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Nessun thread da mostrare</div></td></tr>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    html += '<tr>' +
+      '<td><div class="cell-trunc" title="' + r.subject + '">' + r.subject + '</div></td>' +
+      '<td><div class="cell-trunc cell-muted">' + r.from + '</div></td>' +
+      '<td class="cell-muted" style="white-space:nowrap">' + dayjs(r.inDate).format('DD/MM/YY HH:mm') + '</td>' +
+      '<td class="cell-muted" style="white-space:nowrap">' + (r.replyDate ? dayjs(r.replyDate).format('DD/MM/YY HH:mm') : '—') + '</td>' +
+      '<td><span class="pill pill-' + r.cls + '">' + (r.ftrMs >= 0 ? fmtMs(r.ftrMs) : 'No risposta') + '</span></td>' +
+      '<td><div class="cell-trunc cell-muted">' + (r.repliedBy || '—') + '</div></td>' +
+      '</tr>';
+  }
+  tbody.innerHTML = html;
+}
+
+function filterTable(type, btn) {
+  document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  var rows = type === 'all' ? getAllRows() : getAllRows().filter(function(r) { return r.cls === type; });
+  renderTable(rows);
+}
+
+// ─── CSV Export ────────────────────────────────────────────
+function exportCSV() {
+  var rows = getAllRows();
+  var lines = 'Oggetto,Mittente,Ricevuta,Prima risposta,FTR (minuti),Risposto da\n';
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    lines += '"' + r.subject.replace(/"/g, '""') + '",' +
+      r.from + ',' +
+      dayjs(r.inDate).format('YYYY-MM-DD HH:mm') + ',' +
+      (r.replyDate ? dayjs(r.replyDate).format('YYYY-MM-DD HH:mm') : '') + ',' +
+      (r.ftrMs >= 0 ? Math.round(r.ftrMs / 60000) : '') + ',' +
+      (r.repliedBy || '') + '\n';
+  }
+  var blob = new Blob([lines], { type: 'text/csv' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ftr_export.csv';
+  a.click();
+}
+
+// ─── Init ──────────────────────────────────────────────────
+window.addEventListener('load', function() {
+  renderFilterTags();
+  loadData().then(function() {
+    var hash = new URLSearchParams(location.hash.substring(1));
+    var token = hash.get('access_token');
+    if (token) {
+      accessToken = token;
+      history.replaceState({}, '', location.pathname);
+      internalDomain = sessionStorage.getItem('ftr_domain') || '';
+      document.getElementById('clientId').value = sessionStorage.getItem('ftr_cid') || '';
+      document.getElementById('internalDomain').value = internalDomain;
+      document.getElementById('maxThreads').value = sessionStorage.getItem('ftr_max') || '100';
+      showStatus('Account connesso, analisi in corso...', '#68d391');
+      document.getElementById('setupTip').style.display = 'none';
+      analyze();
+    } else {
+      renderDashboard();
+    }
+  });
+});
+</script>
+</body>
+</html>
