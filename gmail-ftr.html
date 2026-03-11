@@ -174,6 +174,7 @@ tr:hover td{background:#1e2535}
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 // ─── State ─────────────────────────────────────────────────
 var accessToken = null;
@@ -322,10 +323,20 @@ function startAuth() {
   sessionStorage.setItem('ftr_cid', cid);
   sessionStorage.setItem('ftr_domain', internalDomain);
   sessionStorage.setItem('ftr_max', document.getElementById('maxThreads').value);
-  var scope = encodeURIComponent('https://www.googleapis.com/auth/gmail.readonly');
-  var redirect = encodeURIComponent(location.href.split('?')[0].split('#')[0]);
-  location.href = 'https://accounts.google.com/o/oauth2/v2/auth?client_id=' + cid +
-    '&redirect_uri=' + redirect + '&response_type=token&scope=' + scope + '&prompt=select_account';
+
+  var client = google.accounts.oauth2.initTokenClient({
+    client_id: cid,
+    scope: 'https://www.googleapis.com/auth/gmail.readonly',
+    callback: function(response) {
+      if (response.error) { showStatus('Errore login: ' + response.error, '#fc8181'); return; }
+      accessToken = response.access_token;
+      internalDomain = sessionStorage.getItem('ftr_domain') || '';
+      showStatus('Account connesso, analisi in corso...', '#68d391');
+      document.getElementById('setupTip').style.display = 'none';
+      analyze();
+    }
+  });
+  client.requestAccessToken({ prompt: 'select_account' });
 }
 
 // ─── Analysis ──────────────────────────────────────────────
@@ -540,21 +551,13 @@ function exportCSV() {
 window.addEventListener('load', function() {
   renderFilterTags();
   loadData().then(function() {
-    var hash = new URLSearchParams(location.hash.substring(1));
-    var token = hash.get('access_token');
-    if (token) {
-      accessToken = token;
-      history.replaceState({}, '', location.pathname);
-      internalDomain = sessionStorage.getItem('ftr_domain') || '';
-      document.getElementById('clientId').value = sessionStorage.getItem('ftr_cid') || '';
-      document.getElementById('internalDomain').value = internalDomain;
-      document.getElementById('maxThreads').value = sessionStorage.getItem('ftr_max') || '100';
-      showStatus('Account connesso, analisi in corso...', '#68d391');
-      document.getElementById('setupTip').style.display = 'none';
-      analyze();
-    } else {
-      renderDashboard();
-    }
+    var cid = sessionStorage.getItem('ftr_cid');
+    if (cid) document.getElementById('clientId').value = cid;
+    var dom = sessionStorage.getItem('ftr_domain');
+    if (dom) document.getElementById('internalDomain').value = dom;
+    var mx = sessionStorage.getItem('ftr_max');
+    if (mx) document.getElementById('maxThreads').value = mx;
+    renderDashboard();
   });
 });
 </script>
