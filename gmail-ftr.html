@@ -98,8 +98,8 @@ tr:hover td{background:#1e2535}
         <input type="text" id="clientId" placeholder="xxxxxxxx.apps.googleusercontent.com" />
       </div>
       <div class="form-group">
-        <label>Dominio interno</label>
-        <input type="text" id="internalDomain" placeholder="azienda.com" />
+        <label>Domini interni (separati da virgola)</label>
+        <input type="text" id="internalDomain" placeholder="ndg.ai, indigo.ai" />
       </div>
       <div class="form-group" style="max-width:120px">
         <label>Max thread</label>
@@ -289,9 +289,15 @@ function extractEmail(s) {
   return m ? m[1] : s;
 }
 
+var internalDomains = [];
+
 function isInternal(email) {
-  if (!internalDomain) return false;
-  return email.toLowerCase().indexOf(internalDomain) >= 0;
+  if (!internalDomains.length) return false;
+  var el = email.toLowerCase();
+  for (var i = 0; i < internalDomains.length; i++) {
+    if (el.indexOf(internalDomains[i]) >= 0) return true;
+  }
+  return false;
 }
 
 function setProgress(pct, text, title) {
@@ -330,7 +336,8 @@ function startAuth() {
     callback: function(response) {
       if (response.error) { showStatus('Errore login: ' + response.error, '#fc8181'); return; }
       accessToken = response.access_token;
-      internalDomain = sessionStorage.getItem('ftr_domain') || '';
+      internalDomains = (sessionStorage.getItem('ftr_domain') || '')
+        .split(',').map(function(d) { return d.trim(); }).filter(Boolean);
       showStatus('Account connesso, analisi in corso...', '#68d391');
       document.getElementById('setupTip').style.display = 'none';
       analyze();
